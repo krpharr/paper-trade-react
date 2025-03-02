@@ -1,0 +1,3 @@
+gcloud compute firewall-rules create allow-vite-8020 --allow=tcp:8020 --source-ranges=0.0.0.0/0 --target-tags=vite-server --description="Allow Vite dev server on port 8020"
+gcloud compute instances add-tags instance-20250213-165846 --tags=vite-server --zone=us-east4-a
+
