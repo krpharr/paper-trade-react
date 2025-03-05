@@ -1,97 +1,53 @@
-import React, { useEffect, useState } from "react";
-import { createSession, getAllSessions, getSession, deleteSession } from "./db";
+import React, { useState } from "react";
+import { Card, Button, Input, Select, Typography, DatePicker, Space, message } from "antd";
+import axios from "axios";
+import dayjs from "dayjs";
 
-const SessionManager = ({ onLoadSession }) => {
-  const [sessions, setSessions] = useState([]);
-  const [sessionName, setSessionName] = useState("");
-  const [ticker, setTicker] = useState("");
-  const [startingBalance, setStartingBalance] = useState(10000);
-  const [startDate, setStartDate] = useState(""); // User selects the start date
-  const [error, setError] = useState("");
+const { Option } = Select;
+const { Title, Text } = Typography;
 
-  // Load existing sessions on mount
-  useEffect(() => {
-    const loadSessions = async () => {
-      try {
-        const savedSessions = await getAllSessions();
-        setSessions(savedSessions);
-        console.log("Loaded sessions:", savedSessions);
-      } catch (error) {
-        console.error("Error loading sessions:", error);
-      }
-    };
-    loadSessions();
-  }, []);
+const SessionManager = () => {
+  const [ticker, setTicker] = useState("AAPL");
+  const [startDate, setStartDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const [interval, setInterval] = useState("1d");
+  const [data, setData] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Create a new session
-  const handleCreateSession = async () => {
-    if (!sessionName.trim() || !ticker.trim() || !startDate) {
-      setError("Session name, ticker, and start date are required.");
-      return;
-    }
-
-    const newSession = {
-      name: sessionName.trim(),
-      ticker: ticker.trim().toUpperCase(),
-      startDate,
-      currentDate: startDate, // Start from the selected date
-      startingBalance,
-      sharesOwned: 0,
-      trades: [],
-    };
-
+  const fetchData = async () => {
     try {
-      const sessionId = await createSession(newSession);
-      console.log("Session created with ID:", sessionId);
-      setSessions([...sessions, { ...newSession, id: sessionId }]);
-      setSessionName("");
-      setTicker("");
-      setStartDate("");
-      setError("");
+      const url = `http://34.48.110.245:8000/api/fin/hist/${ticker}/${startDate}/${endDate}/${interval}/`;
+      const response = await axios.get(url);
+      
+      if (response.data.length === 0) {
+        message.error("No data available for the selected period.");
+      } else {
+        setData(response.data);
+        setCurrentIndex(0);
+      }
     } catch (error) {
-      console.error("Error creating session:", error);
-      setError(error.message);
+      message.error("Failed to fetch data. Please check your inputs.");
     }
   };
 
+
   return (
-    <div>
-      <h2>Manage Trading Sessions</h2>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <div>
-        <label>Session Name: </label>
-        <input type="text" value={sessionName} onChange={(e) => setSessionName(e.target.value)} />
-      </div>
-
-      <div>
-        <label>Ticker: </label>
-        <input type="text" value={ticker} onChange={(e) => setTicker(e.target.value.toUpperCase())} />
-      </div>
-
-      <div>
-        <label>Start Date: </label>
-        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-      </div>
-
-      <div>
-        <label>Starting Balance: </label>
-        <input type="number" value={startingBalance} onChange={(e) => setStartingBalance(parseFloat(e.target.value))} />
-      </div>
-
-      <button onClick={handleCreateSession}>Create New Session</button>
-
-      <h3>Saved Sessions</h3>
-      <ul>
-        {sessions.map((session) => (
-          <li key={session.id}>
-            <strong>{session.name}</strong> ({session.ticker}) - Start: {session.startDate}
-            <button onClick={() => onLoadSession(session)}>Load</button>
-            <button onClick={() => deleteSession(session.id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
+    <div style={{ maxWidth: 600, margin: "auto", padding: 20 }}>
+      <Card title={<Title level={4}>Stock Data Viewer</Title>} bordered>
+        <Space direction="vertical" style={{ width: "100%" }}>
+          <Text strong>Balance: </Text>
+          <Input type="number" value={balance} onChange={(e) => setBalance(Number(e.target.value))} />
+          <Text strong>Shares: </Text>
+          <Input type="number" value={shares} onChange={(e) => setShares(Number(e.target.value))} />
+          <Text strong>Ticker:</Text>
+          <Input placeholder="Enter Ticker" value={ticker} onChange={(e) => setTicker(e.target.value.toUpperCase())} />
+          <Text strong>Start Date:</Text>
+          <DatePicker format="YYYY-MM-DD" value={dayjs(startDate)} onChange={(date) => setStartDate(date.format("YYYY-MM-DD"))} />
+          <Text strong>End Date:</Text>
+          <DatePicker format="YYYY-MM-DD" value={dayjs(endDate)} onChange={(date) => setEndDate(date.format("YYYY-MM-DD"))} />
+          <Button type="primary" onClick={fetchData}>Start</Button>
+        </Space>
+      </Card>
     </div>
   );
 };
