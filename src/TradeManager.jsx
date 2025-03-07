@@ -11,7 +11,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
   const [orderType, setOrderType] = useState("buy_market");
   const [orderPrice, setOrderPrice] = useState(0);
   const [orderQuantity, setOrderQuantity] = useState(0);
-  const [orderExpiration, setOrderExpiration] = useState("gfd");
+  const [orderExpiration, minor setOrderExpiration] = useState("gfd");
  
   useEffect(() => {
     if (data.length > 0) {
