@@ -44,7 +44,63 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                         order.completed = data[currentIndex]['Date']      
                         order.price = price;                  
                     }
-                }                
+                }                     
+                if (order.type === 'buy_stop'){
+                    const open_price = parseFloat(data[currentIndex]['Open'])
+                    const high_price = parseFloat(data[currentIndex]['High'])
+                    let tradeTotal = parseInt(order.quantity) * order.price
+
+                    if (open_price <= order.price && high_price >= order.price){
+                        if (tradeTotal > balance) {
+                            msg = "Trade could not be fulfiled";
+                            order.status = "cancelled"
+                            order.completed = data[currentIndex]['Date']
+                        }
+                        if (tradeTotal <= balance){
+                            msg = "Trade completed";
+                            let s = [];
+                            for (let i = 0; i < order.quantity; i++) {
+                                s.push({
+                                    orderId: order.id,
+                                    date: data[currentIndex]['Date'],
+                                    price: order.price
+                                })
+                            }
+                            setShares([...shares, ...s]);
+                            setBalance(balance - tradeTotal);
+                            order.status = "filled"
+                            order.completed = data[currentIndex]['Date']                    
+                        }
+                    }
+                }              
+                if (order.type === 'buy_limit'){
+                    const open_price = parseFloat(data[currentIndex]['Open'])
+                    const low_price = parseFloat(data[currentIndex]['Low'])
+                    let tradeTotal = parseInt(order.quantity) * order.price
+
+                    if (open_price >= order.price && low_price <= order.price){
+                        if (tradeTotal > balance) {
+                            msg = "Trade could not be fulfiled";
+                            order.status = "cancelled"
+                            order.completed = data[currentIndex]['Date']
+                        }
+                        if (tradeTotal <= balance){
+                            msg = "Trade completed";
+                            let s = [];
+                            for (let i = 0; i < order.quantity; i++) {
+                                s.push({
+                                    orderId: order.id,
+                                    date: data[currentIndex]['Date'],
+                                    price: order.price
+                                })
+                            }
+                            setShares([...shares, ...s]);
+                            setBalance(balance - tradeTotal);
+                            order.status = "filled"
+                            order.completed = data[currentIndex]['Date']                    
+                        }
+                    }
+                }           
                 if (order.type === 'sell_market'){
                     const price = parseFloat(data[currentIndex]['Open']);
                     msg = "Trade completed";
@@ -58,6 +114,46 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                     order.status = "filled";
                     order.completed = data[currentIndex]['Date'];
                     order.price = price;
+                }                
+                if (order.type === 'sell_stop'){
+                    if (shares.length < order.quantity) {
+                        message.error("Not enough shares to sell stop order. Todo: only create new orders sell orders that match shares. also need to be able to update an order to accoodate.")
+                        order.status = "cancelled";
+                        order.completed = data[currentIndex]['Date'];       
+                        return;                     
+                    }
+                    const open_price = parseFloat(data[currentIndex]['Open']);
+                    const low_price = parseFloat(data[currentIndex]['Low']);
+
+                    if (open_price >= order.price && low_price <= order.price) {
+                        // stop has been hit
+                        msg = "Trade completed";               
+                        let tradeTotal = order.quantity * order.price;              
+                        setShares(shares.length === order.quantity ? [] : shares.slice(order.quantity));    
+                        setBalance(balance + tradeTotal);
+                        order.status = "filled";
+                        order.completed = data[currentIndex]['Date'];
+                    }
+                }                
+                if (order.type === 'sell_limit'){
+                    if (shares.length < order.quantity) {
+                        message.error("Not enough shares to sell limit order. Todo: only create new orders sell orders that match shares. also need to be able to update an order to accoodate.")
+                        order.status = "cancelled";
+                        order.completed = data[currentIndex]['Date'];       
+                        return;                     
+                    }
+                    const open_price = parseFloat(data[currentIndex]['Open']);
+                    const high_price = parseFloat(data[currentIndex]['High']);
+
+                    if (open_price <= order.price && high_price >= order.price) {
+                        // limit has been hit
+                        msg = "Trade completed";               
+                        let tradeTotal = order.quantity * order.price;              
+                        setShares(shares.length === order.quantity ? [] : shares.slice(order.quantity));    
+                        setBalance(balance + tradeTotal);
+                        order.status = "filled";
+                        order.completed = data[currentIndex]['Date'];
+                    }
                 }
             }
         }

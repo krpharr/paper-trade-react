@@ -9,6 +9,7 @@ const { Title, Text } = Typography;
 const StockDataViewer = ({ data, currentIndex, ticker }) => {
     const [loading, setLoading] = useState(false);
     const [pfData, setPfData] = useState(undefined);
+    const [pfLink, setPfLink] = useState("");
 
     useEffect(() => {
         if (data.length < 1 ) return;
@@ -29,7 +30,9 @@ const StockDataViewer = ({ data, currentIndex, ticker }) => {
             console.log("pfData", pfData);
           }
         };
-    
+        let pfd = dayjs(d).format("YYYYMMDD");
+        let pfUrl = `https://stockcharts.com/freecharts/pnf.php?c=${ticker},PWTADANRNO[PA][D${pfd}][F1!3!!!2!20][J,Y]`;
+        setPfLink(pfUrl);
         fetchPointFigure();
       }, [currentIndex]); 
     
@@ -53,18 +56,26 @@ const StockDataViewer = ({ data, currentIndex, ticker }) => {
         </Card>
       </div>
       <div>
-      <div>
-            <Card style={{ marginTop: 20 }}>
-                <Title level={5}>Point & Figure Chart</Title>
-                {pfData ? (
-                    <pre style={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
-                        {pfData}
-                    </pre>
-                ) : (
-                    <Text>No data available</Text>
-                )}
-            </Card>
-      </div>
+
+        <div><Button 
+            type="primary" 
+            onClick={() => window.open(pfLink, "pfchart")}
+            >
+            {ticker} Point & Figure
+            </Button>
+        </div>
+        <div>
+                <Card style={{ marginTop: 20 }}>
+                    <Title level={5}>Point & Figure Chart</Title>
+                    {pfData ? (
+                        <pre style={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
+                            {pfData}
+                        </pre>
+                    ) : (
+                        <Text>No data available</Text>
+                    )}
+                </Card>
+        </div>
 
       </div>
 

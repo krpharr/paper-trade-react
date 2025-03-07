@@ -12,8 +12,10 @@ const App = () => {
   const [ticker, setTicker] = useState("AAPL");
   const [startDate, setStartDate] = useState(dayjs().subtract(1, "year").format("YYYY-MM-DD"));
   const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const [currentDate, setCurrentDate] = useState(startDate);
   const [interval, setInterval] = useState("1d");
-  const [balance, setBalance] = useState(10000);
+  const [balance, setBalance] = useState(1000);
+  const [startBalance, setStartBalance] = useState(1000);
   const [shares, setShares] = useState([]);
   const [cost, setCost] = useState(0.0)
   const [data, setData] = useState([]);
@@ -28,10 +30,15 @@ const App = () => {
     }
     setCost(n)
     console.log("currentIndex", currentIndex);
+    if (data.length > 0) {
+      setCurrentDate(dayjs(data[currentIndex]["Date"]).format("YYYY-MM-DD"));
+
+    }
   }, [balance, shares, currentIndex]);
 
   const startSession = () => {
     setRunning(true);
+    setStartBalance(balance);
     fetchData();
   };
 
@@ -61,7 +68,8 @@ const App = () => {
 
   const handleReset = () => {
     setCurrentIndex(data.length - 1);
-    setBalance(10000);
+    setBalance(1000);
+    setStartBalance(1000);
     setShares([]);
     setOrders([]);
     setRunning(false);
@@ -116,13 +124,19 @@ const App = () => {
               Bal: ${balance.toFixed(2)} 
             </div>
             <div>
-              Shares: {shares.length} ${(parseFloat(data[currentIndex]['Close']) * shares.length).toFixed(2)} |
-              Cost: ${cost.toFixed(2)}
+              Begining Bal: ${startBalance} | Num Days: {dayjs(currentDate).diff(dayjs(startDate), "day")} | P/L ${((((parseFloat(data[currentIndex]['Close']) * shares.length) + balance))-startBalance).toFixed(2)}
             </div>
-            <div>
-              Gain/Loss: ${((parseFloat(data[currentIndex]['Close']) * shares.length) - cost).toFixed(2)} |
-              % {((((parseFloat(data[currentIndex]['Close']) * shares.length) - cost) / cost) * 100).toFixed(2)}
+            <div style={{ border: "2px solid black", padding: "10px" }}>
+              <div>
+                Shares: {shares.length} ${(parseFloat(data[currentIndex]['Close']) * shares.length).toFixed(2)} |
+                Cost: ${cost.toFixed(2)}
+              </div>
+              <div>
+                P/L: ${((parseFloat(data[currentIndex]['Close']) * shares.length) - cost).toFixed(2)} |
+                % {((((parseFloat(data[currentIndex]['Close']) * shares.length) - cost) / cost) * 100).toFixed(2)}
+              </div>
             </div>
+
           </div>
           :
           ""
