@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Card, Button, Input, Select, Typography, DatePicker, Space, message } from "antd";
+import { Card, Table, Button, Input, Select, Typography, DatePicker, Space, message } from "antd";
 import axios from "axios";
 import dayjs from "dayjs";
-import StockDataViewer from "./StockDataViewer";
-import TradeManager from "./TradeManager";
+import StockDataViewer from "./components/StockDataViewer";
+import TradeManager from "./components/TradeManager";
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -34,11 +34,12 @@ const App = () => {
       setCurrentDate(dayjs(data[currentIndex]["Date"]).format("YYYY-MM-DD"));
 
     }
-  }, [balance, shares, currentIndex]);
+  }, [balance, shares, currentIndex, orders]);
 
   const startSession = () => {
     setRunning(true);
-    setStartBalance(balance);
+    // setStartBalance(balance);
+    setBalance(startBalance);
     fetchData();
   };
 
@@ -74,18 +75,46 @@ const App = () => {
     setOrders([]);
     setRunning(false);
   };
+
+  const handleCancelOrder = (orderId) => {
+    const updatedOrders = orders.filter(order => order.id !== orderId);
+    setOrders(updatedOrders);
+    message.success("Order canceled successfully!");
+  };
   
+  const columns = [
+    { title: "Created", dataIndex: "created", key: "created" },
+    { title: "Type", dataIndex: "type", key: "type" },
+    { title: "Price", dataIndex: "price", key: "price", render: (price) => `$${price.toFixed(2)}` },
+    { title: "Quantity", dataIndex: "quantity", key: "quantity" },
+    { title: "Expiration", dataIndex: "expiration", key: "expiration" },
+    { title: "Status", dataIndex: "status", key: "status" },
+    { title: "Completed", dataIndex: "completed", key: "completed" },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <Button 
+          type="link" 
+          danger 
+          onClick={() => handleCancelOrder(record.id)}
+        >
+          Cancel
+        </Button>
+      ),
+    },
+  ];
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
+    <div style={{ display: "flex", height: "100vh", padding: "20px" }}>
       
       {/* Left Sidebar */}
-      <div style={{ width: "250px", background: "#f0f0f0", padding: "20px" }}>
-        <h3>Left Sidebar</h3>
-          <Card title={<Title level={4}>Stock Data Viewer</Title>} bordered>
+      <div style={{ width: "180px", background: "#f0f0f0", padding: "20px" }}>
+
+          <Card title={<Title level={4}>Settings</Title>} bordered>
            <Space direction="vertical" style={{ width: "100%" }}>
               <Text strong>Balance: </Text>
-              <Input type="number" value={balance} onChange={(e) => setBalance(Number(e.target.value))} />
+              <Input type="number" value={startBalance} onChange={(e) => setStartBalance(Number(e.target.value))} />
               {/* <Text strong>Shares: </Text>
               <Input type="number" value={shares} onChange={(e) => setShares(Number(e.target.value))} /> */}
               <Text strong>Ticker:</Text>
@@ -115,8 +144,8 @@ const App = () => {
       </div>
   
       {/* Main Content */}
-      <div style={{ flex: 1, padding: "20px", background: "#fff" }}>
-        <h2>Main Content</h2>
+      <div style={{ flex: 1, padding: "20px", background: "#fff", width: "700px" }}>
+        <h2>{ticker.toUpperCase()}</h2>
         {data.length > 0 ? 
           <div>
             <div>
@@ -133,7 +162,7 @@ const App = () => {
               </div>
               <div>
                 P/L: ${((parseFloat(data[currentIndex]['Close']) * shares.length) - cost).toFixed(2)} |
-                % {((((parseFloat(data[currentIndex]['Close']) * shares.length) - cost) / cost) * 100).toFixed(2)}
+                % {shares.length > 0 ? ((((parseFloat(data[currentIndex]['Close']) * shares.length) - cost) / cost) * 100).toFixed(2) : "N/A"} 
               </div>
             </div>
 
@@ -147,11 +176,30 @@ const App = () => {
           currentIndex={currentIndex} 
           ticker={ticker}
         />
+
+        {orders.length > 0 ? (
+                <Card title="Orders" style={{ marginTop: 20 }}>
+                  <Table
+                    columns={columns}
+                    dataSource={orders}
+                    rowKey="id"
+                    pagination={false}
+                  />
+                </Card>
+              ) : (
+                <Card title="Orders" style={{ marginTop: 20 }}>
+                  No open orders
+                </Card>
+              )}
+
+
+
+
       </div>
-  
+
       {/* Right Sidebar */}
       <div style={{ width: "250px", background: "#f0f0f0", padding: "20px" }}>
-        <h3>Right Sidebar</h3>
+        <h3>Trade</h3>
         <TradeManager 
           data={data} 
           currentIndex={currentIndex} 

@@ -33,7 +33,9 @@ const StockDataViewer = ({ data, currentIndex, ticker }) => {
         let pfd = dayjs(d).format("YYYYMMDD");
         let pfUrl = `https://stockcharts.com/freecharts/pnf.php?c=${ticker},PWTADANRNO[PA][D${pfd}][F1!3!!!2!20][J,Y]`;
         setPfLink(pfUrl);
-        fetchPointFigure();
+        // fetchPointFigure();
+        let str = `O:${data[currentIndex]['Open']} C:${data[currentIndex]['Close']} H:${data[currentIndex]['High']} L:${data[currentIndex]['Low']}`
+        console.log(str)
       }, [currentIndex]); 
     
 
@@ -64,7 +66,7 @@ const StockDataViewer = ({ data, currentIndex, ticker }) => {
             {ticker} Point & Figure
             </Button>
         </div>
-        <div>
+        {/* <div>
                 <Card style={{ marginTop: 20 }}>
                     <Title level={5}>Point & Figure Chart</Title>
                     {pfData ? (
@@ -75,7 +77,7 @@ const StockDataViewer = ({ data, currentIndex, ticker }) => {
                         <Text>No data available</Text>
                     )}
                 </Card>
-        </div>
+        </div> */}
 
       </div>
 
