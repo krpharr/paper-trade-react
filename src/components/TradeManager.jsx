@@ -8,13 +8,19 @@ const { Option } = Select;
 const { Title, Text } = Typography;
 
 
-const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShares, orders, setOrders }) => {
+const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShares, orders, setOrders, report, setReport }) => {
   const [orderType, setOrderType] = useState("buy_market");
   const [orderPrice, setOrderPrice] = useState(0);
   const [orderQuantity, setOrderQuantity] = useState(0);
   const [orderExpiration, setOrderExpiration] = useState("gfd");
  
   useEffect(() => {
+
+    const updateReport = (order) => {
+        let report_str = `${order.completed}, ${order.status}, ${order.type}, ${order.quantity}, ${order.price}\n`;
+        setReport(report + report_str);
+    }
+
     if (data.length > 0) {
         for (const order of orders) {
             console.log("Order Quantity:", order.quantity);
@@ -29,8 +35,10 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                     if (tradeTotal > balance) {
                         msg = "Trade could not be fulfiled";
                         console.log(msg);
-                        order.status = "cancelled"
-                        order.completed = data[currentIndex]['Date']
+                        order.status = "cancelled";
+                        order.completed = data[currentIndex]['Date'];
+                        order.price = price;
+                        updateReport(order);
                     }
                     if (tradeTotal <= balance){
                         msg = "Buy Market Trade completed";
@@ -47,6 +55,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                         order.status = "filled"
                         order.completed = data[currentIndex]['Date']      
                         order.price = price;         
+                        updateReport(order);
                         console.log(msg);         
                     }
                 }                
@@ -62,6 +71,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                     order.status = "filled";
                     order.completed = data[currentIndex]['Date'];
                     order.price = price;
+                    updateReport(order);
                 }       
             }
             if (order.status === 'open' && order.created != data[currentIndex]['Date']) {
@@ -75,6 +85,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                             msg = "Trade could not be fulfiled";
                             order.status = "cancelled"
                             order.completed = data[currentIndex]['Date']
+                            updateReport(order);
                         }
                         if (tradeTotal <= balance){
                             msg = "Trade completed";
@@ -90,6 +101,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                             setBalance(balance - tradeTotal);
                             order.status = "filled"
                             order.completed = data[currentIndex]['Date']                    
+                            updateReport(order);
                         }
                     }
                 }              
@@ -102,6 +114,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                             msg = "Trade could not be fulfiled";
                             order.status = "cancelled"
                             order.completed = data[currentIndex]['Date']
+                            updateReport(order);
                         }
                         if (tradeTotal <= balance){
                             msg = "Trade completed";
@@ -117,6 +130,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                             setBalance(balance - tradeTotal);
                             order.status = "filled"
                             order.completed = data[currentIndex]['Date']                    
+                            updateReport(order);
                         }
                     }
                 }                 
@@ -125,6 +139,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                         message.error("Not enough shares to sell stop order. Todo: only create new orders sell orders that match shares. also need to be able to update an order to accoodate.")
                         order.status = "cancelled";
                         order.completed = data[currentIndex]['Date'];       
+                        updateReport(order);
                         return;                     
                     }
                     const low_price = parseFloat(data[currentIndex]['Low']);
@@ -137,6 +152,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                         setBalance(balance + tradeTotal);
                         order.status = "filled";
                         order.completed = data[currentIndex]['Date'];
+                        updateReport(order);
                     }
                 }                
                 if (order.type === 'sell_limit'){
@@ -144,6 +160,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                         message.error("Not enough shares to sell limit order. Todo: only create new orders sell orders that match shares. also need to be able to update an order to accoodate.")
                         order.status = "cancelled";
                         order.completed = data[currentIndex]['Date'];       
+                        updateReport(order);
                         return;                     
                     }
                     const high_price = parseFloat(data[currentIndex]['High']);
@@ -156,6 +173,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                         setBalance(balance + tradeTotal);
                         order.status = "filled";
                         order.completed = data[currentIndex]['Date'];
+                        updateReport(order);
                     }
                 }
             }

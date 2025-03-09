@@ -22,6 +22,7 @@ const App = () => {
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [running, setRunning] = useState(false);
   const [orders, setOrders] = useState([]); // Move orders state here
+  const [report, setReport] = useState("");
 
   useEffect(() => {
     let n = 0.0;
@@ -34,6 +35,7 @@ const App = () => {
       setCurrentDate(dayjs(data[currentIndex]["Date"]).format("YYYY-MM-DD"));
 
     }
+
   }, [balance, shares, currentIndex, orders]);
 
   const startSession = () => {
@@ -60,10 +62,17 @@ const App = () => {
   };
 
   const handleNext = () => {
+    let num_days = dayjs(currentDate).diff(dayjs(startDate), "day");
+    let val = (parseFloat(data[currentIndex]['Close']) * shares.length).toFixed(2);
+    let total = ((parseFloat(data[currentIndex]['Close']) * shares.length) + balance).toFixed(2);
+    let pl =(((val - cost)/cost) * 100).toFixed(2);
+    let str = `${data[currentIndex]['Date']} Total: ${total} | Days: ${num_days} | Bal: ${balance} Val: ${val} P/L: %${pl}\n`;
+    setReport(report + str);
     if (currentIndex < data.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
       message.info("Test is over. No more data available.");
+      console.log(report);
     }
   };
 
@@ -74,6 +83,7 @@ const App = () => {
     setShares([]);
     setOrders([]);
     setRunning(false);
+    setReport("");
   };
 
   const handleCancelOrder = (orderId) => {
@@ -209,6 +219,8 @@ const App = () => {
           setShares={setShares}
           orders={orders}
           setOrders={setOrders}
+          report={report}
+          setReport={setReport}
         />          
       </div>
   
