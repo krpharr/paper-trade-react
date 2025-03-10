@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Card, Table, Button, Input, Select, Typography, DatePicker, Space, message } from "antd";
+import { Card, Table, Button, Input, Select, Typography, DatePicker, Switch, Space, message } from "antd";
 import axios from "axios";
 import dayjs from "dayjs";
 import StockDataViewer from "./components/StockDataViewer";
 import TradeManager from "./components/TradeManager";
+import CandlestickChart from "./components/CandlestickChart";
+import "./styles.css"
+
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -14,6 +17,8 @@ const App = () => {
   const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
   const [currentDate, setCurrentDate] = useState(startDate);
   const [interval, setInterval] = useState("1d");
+  const [period, setPeriod] = useState("1mo");
+  const [numMonths, setNumMonths] = useState(1);
   const [balance, setBalance] = useState(1000);
   const [startBalance, setStartBalance] = useState(1000);
   const [shares, setShares] = useState([]);
@@ -23,6 +28,7 @@ const App = () => {
   const [running, setRunning] = useState(false);
   const [orders, setOrders] = useState([]); // Move orders state here
   const [report, setReport] = useState("");
+  const [chartVisable, setChartVisable] = useState(false);
 
   useEffect(() => {
     let n = 0.0;
@@ -37,6 +43,21 @@ const App = () => {
     }
 
   }, [balance, shares, currentIndex, orders]);
+
+  useEffect(() => {
+    if (interval === "1d"){
+      setPeriod("1mo");
+      setNumMonths(1);
+    }
+    if(interval === "1wk"){
+      setPeriod("6mo");
+      setNumMonths(6);
+    }
+    if(interval === "1mo"){
+      setPeriod("2y");
+      setNumMonths(24);
+    }
+  }, [interval]);
 
   const startSession = () => {
     setRunning(true);
@@ -90,6 +111,10 @@ const App = () => {
     const updatedOrders = orders.filter(order => order.id !== orderId);
     setOrders(updatedOrders);
     message.success("Order canceled successfully!");
+  };
+
+  const handleChartToggle = (checked) => {
+    setChartVisable(checked);
   };
   
   const columns = [
@@ -180,12 +205,45 @@ const App = () => {
           :
           ""
         }
-        
-        <StockDataViewer 
-          data={data} 
-          currentIndex={currentIndex} 
-          ticker={ticker}
-        />
+        <div>
+          <Text strong>Chart: {chartVisable ? "ON" : "OFF"}</Text>
+          <br />
+          <Switch checked={chartVisable} onChange={handleChartToggle} />
+        </div>
+
+        {chartVisable && (
+          <CandlestickChart 
+            ticker={ticker}
+            interval={interval}
+            period={period}
+            end={currentDate}
+            start={dayjs(currentDate).subtract(numMonths, "month").format("YYYY-MM-DD")}
+          />
+        )}
+
+
+        <div className="flex-container">
+          <StockDataViewer 
+            data={data} 
+            currentIndex={currentIndex} 
+            ticker={ticker}
+          />
+
+          <TradeManager 
+            data={data} 
+            currentIndex={currentIndex} 
+            balance={balance} 
+            setBalance={setBalance} 
+            shares={shares} 
+            setShares={setShares}
+            orders={orders}
+            setOrders={setOrders}
+            report={report}
+            setReport={setReport}
+          />   
+
+        </div>
+  
 
         {orders.length > 0 ? (
                 <Card title="Orders" style={{ marginTop: 20 }}>
@@ -202,28 +260,8 @@ const App = () => {
                 </Card>
               )}
 
-
-
-
       </div>
-
-      {/* Right Sidebar */}
-      <div style={{ width: "250px", background: "#f0f0f0", padding: "20px" }}>
-        <h3>Trade</h3>
-        <TradeManager 
-          data={data} 
-          currentIndex={currentIndex} 
-          balance={balance} 
-          setBalance={setBalance} 
-          shares={shares} 
-          setShares={setShares}
-          orders={orders}
-          setOrders={setOrders}
-          report={report}
-          setReport={setReport}
-        />          
-      </div>
-  
+ 
     </div>
   );
 

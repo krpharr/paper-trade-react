@@ -43,15 +43,14 @@ const StockDataViewer = ({ data, currentIndex, ticker }) => {
     <div style={{ maxWidth: 600, margin: "auto", padding: 20 }}>
       <div>
         <Card style={{ marginTop: 20 }}>
-            <Title level={5}>Stock Data</Title>
             {data.length > 0 && (
             <>
-                <Text strong>Date:</Text> {data[currentIndex]['Date']}<br />
-                <Text strong>Open:</Text> {data[currentIndex]['Open']}<br />
-                <Text strong>High:</Text> {data[currentIndex]['High']}<br />
-                <Text strong>Low:</Text> {data[currentIndex]['Low']}<br />
-                <Text strong>Close:</Text> {data[currentIndex]['Close']}<br />
-                <Text strong>Volume:</Text> {data[currentIndex]['Volume']}<br />
+                <Text strong>Date:</Text> {dayjs(data[currentIndex]['Date']).format("YYYY-MM-DD")}<br />
+                <Text strong>O:</Text> {parseFloat(data[currentIndex]['Open']).toFixed(2)}<br />
+                <Text strong>C:</Text> {parseFloat(data[currentIndex]['Close']).toFixed(2)}<br />
+                <Text strong>H:</Text> {parseFloat(data[currentIndex]['High']).toFixed(2)}<br />
+                <Text strong>L:</Text> {parseFloat(data[currentIndex]['Low']).toFixed(2)}<br />
+                <Text strong>Vol:</Text> {parseFloat(data[currentIndex]['Volume']).toFixed(2)}<br />
                 {/* <Button type="default" onClick={handleNext}>Next</Button> */}
             </>
             )}

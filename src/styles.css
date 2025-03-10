@@ -1,0 +1,12 @@
+.flex-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Aligns both components at the top */
+    gap: 20px; /* Adds spacing between components */
+    width: 100%; /* Ensures it takes full width */
+  }
+  
+  .flex-container > * {
+    flex: 1; /* Makes both components take equal space */
+    max-width: 50%; /* Prevents them from getting too wide */
+  }
