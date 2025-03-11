@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 const { Option } = Select;
 const { Title, Text } = Typography;
 
-const StockDataViewer = ({ data, currentIndex, ticker }) => {
+const PointFigure = ({ data, currentIndex, ticker }) => {
     const [loading, setLoading] = useState(false);
     const [pfData, setPfData] = useState(undefined);
     const [pfLink, setPfLink] = useState("");
@@ -43,27 +43,42 @@ const StockDataViewer = ({ data, currentIndex, ticker }) => {
         setViewPF(checked);
       };
 
-  return (
-    <div>
-      <div>
-        <Card>
-            {data.length > 0 && (
-            <>
-                <Text strong>Date:</Text> {dayjs(data[currentIndex]['Date']).format("YYYY-MM-DD")}<br />
-                <Text strong>O:</Text> {parseFloat(data[currentIndex]['Open']).toFixed(2)}<br />
-                <Text strong>C:</Text> {parseFloat(data[currentIndex]['Close']).toFixed(2)}<br />
-                <Text strong>H:</Text> {parseFloat(data[currentIndex]['High']).toFixed(2)}<br />
-                <Text strong>L:</Text> {parseFloat(data[currentIndex]['Low']).toFixed(2)}<br />
-                <Text strong>Vol:</Text> {parseFloat(data[currentIndex]['Volume']).toFixed(2)}<br />
-                {/* <Button type="default" onClick={handleNext}>Next</Button> */}
-            </>
-            )}
-        </Card>
-      </div>
+      return (
+            <div>
+                <div className="flex-container">
+                    <Card>
+                    <Text strong>PF Chart: {viewPF ? "ON" : "OFF"}</Text>
+                    <br />
+                    <Switch checked={viewPF} onChange={handlePFToggle} />
+                    </Card>
+            
+                    <Card><Button 
+                        type="primary" 
+                        onClick={() => window.open(pfLink, "pfchart")}
+                        >
+                        {ticker} Point & Figure
+                        </Button>
+                    </Card>
+                </div>
+              {viewPF && (
+                <div>
+                      <Card style={{ marginTop: 20 }}>
+                          <Title level={5}>Point & Figure Chart</Title>
+                          {pfData ? (
+                              <pre style={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
+                                  {pfData}
+                              </pre>
+                          ) : (
+                              <Text>No data available</Text>
+                          )}
+                      </Card>
+                </div>
+      
+              )}
+      
+            </div>
+      );
 
-
-    </div>
-  );
 };
 
-export default StockDataViewer;
+export default PointFigure;

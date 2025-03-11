@@ -220,8 +220,8 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
   };
 
   return (
-    <div style={{ maxWidth: 600, margin: "auto", padding: 20 }}>
-      <Card style={{ marginTop: 20 }}>
+    <div style={{ maxWidth: 600, margin: "auto" }}>
+      <Card >
         <Title level={5}>Place Order</Title>
         <Select value={orderType} onChange={setOrderType} style={{ width: "100%" }}>
           <Option value="buy_market">Buy Market</Option>

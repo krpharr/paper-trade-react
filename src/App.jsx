@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import StockDataViewer from "./components/StockDataViewer";
 import TradeManager from "./components/TradeManager";
 import CandlestickChart from "./components/CandlestickChart";
+import PointFigure from "./components/PointFigure";
 import "./styles.css"
 
 
@@ -183,28 +184,32 @@ const App = () => {
         <h2>{ticker.toUpperCase()}</h2>
         {data.length > 0 ? 
           <div className="flex-container">
-            <div >
-              <div>
-                Total: ${((parseFloat(data[currentIndex]['Close']) * shares.length) + balance).toFixed(2)} |
-                Bal: ${balance.toFixed(2)} 
-              </div>
-              <div>
-                Begining Bal: ${startBalance} | Num Days: {dayjs(currentDate).diff(dayjs(startDate), "day")} | P/L ${((((parseFloat(data[currentIndex]['Close']) * shares.length) + balance))-startBalance).toFixed(2)}
-              </div>
-            </div>
-            <div style={{ border: "2px solid black", padding: "10px" }}>
-              <div>
-                Shares: {shares.length} ${(parseFloat(data[currentIndex]['Close']) * shares.length).toFixed(2)} |
-                Cost: ${cost.toFixed(2)}
-              </div>
-              <div>
-                P/L: ${((parseFloat(data[currentIndex]['Close']) * shares.length) - cost).toFixed(2)} |
+            <Card >
+              <Text>
+                Total: ${((parseFloat(data[currentIndex]['Close']) * shares.length) + balance).toFixed(2)} <br />
+                Bal: ${balance.toFixed(2)} <br />
+                Begining Bal: ${startBalance} <br />
+                Num Days: {dayjs(currentDate).diff(dayjs(startDate), "day")} <br />
+                P/L ${((((parseFloat(data[currentIndex]['Close']) * shares.length) + balance))-startBalance).toFixed(2)}
+              </Text>
+            </Card>
+            <Card >
+              <Text>
+                Shares: {shares.length} ${(parseFloat(data[currentIndex]['Close']) * shares.length).toFixed(2)} <br />
+                Cost: ${cost.toFixed(2)}<br />
+                P/L: ${((parseFloat(data[currentIndex]['Close']) * shares.length) - cost).toFixed(2)} <br />
                 % {shares.length > 0 ? ((((parseFloat(data[currentIndex]['Close']) * shares.length) - cost) / cost) * 100).toFixed(2) : "N/A"} 
-              </div>
-            </div>
+              </Text>
+            </Card>
 
-            
-            <div>
+
+          <StockDataViewer 
+            data={data} 
+            currentIndex={currentIndex} 
+            ticker={ticker}
+          />
+    
+
                 <TradeManager 
                 data={data} 
                 currentIndex={currentIndex} 
@@ -218,16 +223,25 @@ const App = () => {
                 report={report}
                 setReport={setReport}
               />   
-            </div>
+
           </div>
           :
           ""
         }
+
         <div>
-          <Text strong>Chart: {chartVisable ? "ON" : "OFF"}</Text>
+          <PointFigure 
+            data={data} 
+            currentIndex={currentIndex} 
+            ticker={ticker}          
+          />
+        </div>
+
+        <Card>
+          <Text strong>Candle Chart: {chartVisable ? "ON" : "OFF"}</Text>
           <br />
           <Switch checked={chartVisable} onChange={handleChartToggle} />
-        </div>
+        </Card>
 
         {chartVisable && (
           <CandlestickChart 
@@ -240,18 +254,7 @@ const App = () => {
         )}
 
 
-        <div className="flex-container">
-          <StockDataViewer 
-            data={data} 
-            currentIndex={currentIndex} 
-            ticker={ticker}
-          />
-
-
-
-        </div>
   
-
         {orders.length > 0 ? (
                 <Card title="Orders" style={{ marginTop: 20 }}>
                   <Table
