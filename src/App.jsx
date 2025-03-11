@@ -182,13 +182,15 @@ const App = () => {
       <div style={{ flex: 1, padding: "20px", background: "#fff", width: "700px" }}>
         <h2>{ticker.toUpperCase()}</h2>
         {data.length > 0 ? 
-          <div>
-            <div>
-              Total: ${((parseFloat(data[currentIndex]['Close']) * shares.length) + balance).toFixed(2)} |
-              Bal: ${balance.toFixed(2)} 
-            </div>
-            <div>
-              Begining Bal: ${startBalance} | Num Days: {dayjs(currentDate).diff(dayjs(startDate), "day")} | P/L ${((((parseFloat(data[currentIndex]['Close']) * shares.length) + balance))-startBalance).toFixed(2)}
+          <div className="flex-container">
+            <div >
+              <div>
+                Total: ${((parseFloat(data[currentIndex]['Close']) * shares.length) + balance).toFixed(2)} |
+                Bal: ${balance.toFixed(2)} 
+              </div>
+              <div>
+                Begining Bal: ${startBalance} | Num Days: {dayjs(currentDate).diff(dayjs(startDate), "day")} | P/L ${((((parseFloat(data[currentIndex]['Close']) * shares.length) + balance))-startBalance).toFixed(2)}
+              </div>
             </div>
             <div style={{ border: "2px solid black", padding: "10px" }}>
               <div>
@@ -201,6 +203,22 @@ const App = () => {
               </div>
             </div>
 
+            
+            <div>
+                <TradeManager 
+                data={data} 
+                currentIndex={currentIndex} 
+                balance={balance} 
+                setBalance={setBalance} 
+                shares={shares} 
+                setShares={setShares}
+                orders={orders}
+                setOrders={setOrders}
+                interval={interval}
+                report={report}
+                setReport={setReport}
+              />   
+            </div>
           </div>
           :
           ""
@@ -229,18 +247,7 @@ const App = () => {
             ticker={ticker}
           />
 
-          <TradeManager 
-            data={data} 
-            currentIndex={currentIndex} 
-            balance={balance} 
-            setBalance={setBalance} 
-            shares={shares} 
-            setShares={setShares}
-            orders={orders}
-            setOrders={setOrders}
-            report={report}
-            setReport={setReport}
-          />   
+
 
         </div>
   

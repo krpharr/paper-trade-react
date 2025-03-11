@@ -8,7 +8,7 @@ const { Option } = Select;
 const { Title, Text } = Typography;
 
 
-const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShares, orders, setOrders, report, setReport }) => {
+const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShares, orders, setOrders, interval, report, setReport }) => {
   const [orderType, setOrderType] = useState("buy_market");
   const [orderPrice, setOrderPrice] = useState(0);
   const [orderQuantity, setOrderQuantity] = useState(0);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, Input, Select, Typography, DatePicker, Space, message } from "antd";
+import { Card, Button, Switch, Input, Select, Typography, DatePicker, Space, message } from "antd";
 import axios from "axios";
 import dayjs from "dayjs";
 
@@ -10,6 +10,7 @@ const StockDataViewer = ({ data, currentIndex, ticker }) => {
     const [loading, setLoading] = useState(false);
     const [pfData, setPfData] = useState(undefined);
     const [pfLink, setPfLink] = useState("");
+    const [viewPF, setViewPF] = useState(false);
 
     useEffect(() => {
         if (data.length < 1 ) return;
@@ -33,11 +34,14 @@ const StockDataViewer = ({ data, currentIndex, ticker }) => {
         let pfd = dayjs(d).format("YYYYMMDD");
         let pfUrl = `https://stockcharts.com/freecharts/pnf.php?c=${ticker},PWTADANRNO[PA][D${pfd}][F1!3!!!2!20][J,Y]`;
         setPfLink(pfUrl);
-        // fetchPointFigure();
+        if (viewPF) fetchPointFigure();
         let str = `O:${data[currentIndex]['Open']} C:${data[currentIndex]['Close']} H:${data[currentIndex]['High']} L:${data[currentIndex]['Low']}`
         console.log(str)
-      }, [currentIndex]); 
-    
+      }, [currentIndex, viewPF]); 
+
+      const handlePFToggle = (checked) => {
+        setViewPF(checked);
+      };
 
   return (
     <div style={{ maxWidth: 600, margin: "auto", padding: 20 }}>
@@ -58,6 +62,12 @@ const StockDataViewer = ({ data, currentIndex, ticker }) => {
       </div>
       <div>
 
+      <div>
+          <Text strong>PF Chart: {viewPF ? "ON" : "OFF"}</Text>
+          <br />
+          <Switch checked={viewPF} onChange={handlePFToggle} />
+        </div>
+
         <div><Button 
             type="primary" 
             onClick={() => window.open(pfLink, "pfchart")}
@@ -65,6 +75,21 @@ const StockDataViewer = ({ data, currentIndex, ticker }) => {
             {ticker} Point & Figure
             </Button>
         </div>
+        {viewPF && (
+          <div>
+                <Card style={{ marginTop: 20 }}>
+                    <Title level={5}>Point & Figure Chart</Title>
+                    {pfData ? (
+                        <pre style={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
+                            {pfData}
+                        </pre>
+                    ) : (
+                        <Text>No data available</Text>
+                    )}
+                </Card>
+          </div>
+
+        )}
         {/* <div>
                 <Card style={{ marginTop: 20 }}>
                     <Title level={5}>Point & Figure Chart</Title>
