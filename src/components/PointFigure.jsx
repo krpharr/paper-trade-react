@@ -15,7 +15,7 @@ const PointFigure = ({ data, currentIndex, ticker }) => {
     useEffect(() => {
         if (data.length < 1 ) return;
         let d = data[currentIndex]['Date']; // Assuming this is a string
-        let endDate = dayjs(d).format("YYYY-MM-DD");
+        let endDate = dayjs(d).add(1, "day").format("YYYY-MM-DD");
         let startDate = dayjs(endDate).subtract(1, "year").format("YYYY-MM-DD"); 
         const fetchPointFigure = async () => {
           setLoading(true);

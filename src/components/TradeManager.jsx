@@ -30,7 +30,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                 console.log("open and created same day");
                 if (order.type === 'buy_market'){
                     console.log("buy_market");
-                    const price = parseFloat(data[currentIndex]['Open'])
+                    const price = parseFloat(data[currentIndex]['Close'])
                     let tradeTotal = parseInt(order.quantity) * price
                     if (tradeTotal > balance) {
                         msg = "Trade could not be fulfiled";
@@ -60,7 +60,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                     }
                 }                
                 if (order.type === 'sell_market'){
-                    const price = parseFloat(data[currentIndex]['Open']);
+                    const price = parseFloat(data[currentIndex]['Close']);
                     msg = "Trade completed";
                 
                     let tradeTotal = order.quantity * price;
