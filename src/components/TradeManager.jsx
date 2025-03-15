@@ -148,7 +148,15 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                         // stop has been hit
                         msg = "Trade completed";               
                         let tradeTotal = order.quantity * order.price;              
-                        setShares(shares.length === order.quantity ? [] : shares.slice(order.quantity));    
+                        // setShares(shares.length === order.quantity ? [] : shares.slice(order.quantity));    
+                        setShares((shares) => {
+                            let remainingShares = [...shares];
+                            for (let i = 0; i < order.quantity; i++) {
+                                remainingShares.shift();  // Remove the first share each iteration
+                            }
+                            return remainingShares;
+                        });
+                        
                         setBalance(balance + tradeTotal);
                         order.status = "filled";
                         order.completed = data[currentIndex]['Date'];
@@ -169,7 +177,14 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                         // limit has been hit
                         msg = "Trade completed";               
                         let tradeTotal = order.quantity * order.price;              
-                        setShares(shares.length === order.quantity ? [] : shares.slice(order.quantity));    
+                        // setShares(shares.length === order.quantity ? [] : shares.slice(order.quantity));    
+                        setShares((shares) => {
+                            let remainingShares = [...shares];
+                            for (let i = 0; i < order.quantity; i++) {
+                                remainingShares.shift();  // Remove the first share each iteration
+                            }
+                            return remainingShares;
+                        });                        
                         setBalance(balance + tradeTotal);
                         order.status = "filled";
                         order.completed = data[currentIndex]['Date'];

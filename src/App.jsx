@@ -34,6 +34,8 @@ const App = () => {
   const [report, setReport] = useState("");
   const [chartVisable, setChartVisable] = useState(false);
   const [percentDiff, setPercentDiff] = useState(0.0);
+  const [fastForwarding, setFastForwarding] = useState(false);
+  const [initialSharesCount, setInitialSharesCount] = useState(0); // Track starting shares
 
   useEffect(() => {
     let n = 0.0;
@@ -68,6 +70,18 @@ const App = () => {
       setNumMonths(24);
     }
   }, [interval]);
+
+  useEffect(() => {
+    if (fastForwarding) {
+        if (shares.length !== initialSharesCount || currentIndex >= data.length - 1) {
+            setFastForwarding(false); // Stop if shares changed or at end of data
+        } else {
+            setTimeout(() => {
+                handleNext(); // Continue advancing
+            }, 100); // Small delay for updates
+        }
+    }
+  }, [currentIndex, shares]);
 
   const startSession = () => {
     setRunning(true);
@@ -121,6 +135,7 @@ const App = () => {
       setCurrentIndex(currentIndex + 1);
     } else {
       message.info("Test is over. No more data available.");
+      setFastForwarding(false);
       console.log(report);
     }
   };
@@ -133,6 +148,7 @@ const App = () => {
     setOrders([]);
     setRunning(false);
     setReport("");
+    setFastForwarding(false);
   };
 
   const handleCancelOrder = (orderId) => {
@@ -143,6 +159,12 @@ const App = () => {
 
   const handleChartToggle = (checked) => {
     setChartVisable(checked);
+  };
+
+  const handleFastForward = () => {
+    setInitialSharesCount(shares.length); // Store the initial number of shares
+    setFastForwarding(true); // Start fast forward
+    handleNext(); // Advance one step
   };
   
   const columns = [
@@ -201,6 +223,24 @@ const App = () => {
               >
                 {running === false ? "Start" : "Next"}
               </Button>
+                {running && (
+                  <>
+                  {fastForwarding ? (                    
+                    <Button
+                      type="danger"
+                      onClick={() => setFastForwarding(false)}
+                    >
+                      Stop FF
+                    </Button>) :(                    
+                      <Button
+                      type="primary" 
+                      onClick={handleFastForward}                
+                    >
+                      FF                
+                    </Button>)}
+                  </>
+                )}
+
                 
            </Space>
           </Card>
@@ -236,20 +276,19 @@ const App = () => {
             ticker={ticker}
           />
     
-
-                <TradeManager 
-                data={data} 
-                currentIndex={currentIndex} 
-                balance={balance} 
-                setBalance={setBalance} 
-                shares={shares} 
-                setShares={setShares}
-                orders={orders}
-                setOrders={setOrders}
-                interval={interval}
-                report={report}
-                setReport={setReport}
-              />   
+          <TradeManager 
+              data={data} 
+              currentIndex={currentIndex} 
+              balance={balance} 
+              setBalance={setBalance} 
+              shares={shares} 
+              setShares={setShares}
+              orders={orders}
+              setOrders={setOrders}
+              interval={interval}
+              report={report}
+              setReport={setReport}
+          />   
 
           </div>
           :
@@ -294,8 +333,6 @@ const App = () => {
             start={dayjs(currentDate).subtract(numMonths, "month").format("YYYY-MM-DD")}
           />
         )}
-
-
   
         {orders.length > 0 ? (
                 <Card title="Orders" style={{ marginTop: 20 }}>
