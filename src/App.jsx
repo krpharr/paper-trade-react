@@ -6,11 +6,13 @@ import StockDataViewer from "./components/StockDataViewer";
 import TradeManager from "./components/TradeManager";
 import CandlestickChart from "./components/CandlestickChart";
 import PointFigure from "./components/PointFigure";
+import RsiChart from "./components/RsiChart";
+import MacdChart from "./components/MacdChart";
 import "./styles.css"
-
 
 const { Option } = Select;
 const { Title, Text } = Typography;
+
 
 const App = () => {
   const [ticker, setTicker] = useState("AAPL");
@@ -25,11 +27,13 @@ const App = () => {
   const [shares, setShares] = useState([]);
   const [cost, setCost] = useState(0.0)
   const [data, setData] = useState([]);
+  const [rsiMacdData, setRsiMacdData] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [running, setRunning] = useState(false);
   const [orders, setOrders] = useState([]); // Move orders state here
   const [report, setReport] = useState("");
   const [chartVisable, setChartVisable] = useState(false);
+  const [percentDiff, setPercentDiff] = useState(0.0);
 
   useEffect(() => {
     let n = 0.0;
@@ -40,7 +44,12 @@ const App = () => {
     console.log("currentIndex", currentIndex);
     if (data.length > 0) {
       setCurrentDate(dayjs(data[currentIndex]["Date"]).format("YYYY-MM-DD"));
-
+      let sd = parseFloat(data[0]['Close']);
+      let ed = parseFloat(data[data.length - 1]['Close']);
+      let pd = (((ed - sd) / sd) * 100).toFixed(2);
+      setPercentDiff(pd);
+      let str = `${ticker} %${percentDiff} ${startDate} ${endDate}\n`;
+      setReport(report + str);
     }
 
   }, [balance, shares, currentIndex, orders]);
@@ -65,6 +74,7 @@ const App = () => {
     // setStartBalance(balance);
     setBalance(startBalance);
     fetchData();
+    fetchRsiMacdData();
   };
 
   const fetchData = async () => {
@@ -77,6 +87,23 @@ const App = () => {
       } else {
         setData(response.data);
         setCurrentIndex(0);
+      }
+    } catch (error) {
+      message.error("Failed to fetch data. Please check your inputs.");
+    }
+  };
+
+  const fetchRsiMacdData = async () => {
+    try {
+      // http://34.48.110.245:8000/api/fin/hist/rsi-macd/aapl/1d/1y/2024-03-05/2025-03-05/
+      const url = `http://34.48.110.245:8000/api/fin/hist/rsi-macd/${ticker}/${interval}/${period}/${startDate}/${endDate}/`;
+      const response = await axios.get(url);
+      
+      if (response.data.length === 0) {
+        message.error("No data available for the selected period.");
+      } else {
+        setRsiMacdData(response.data);
+
       }
     } catch (error) {
       message.error("Failed to fetch data. Please check your inputs.");
@@ -147,7 +174,8 @@ const App = () => {
       {/* Left Sidebar */}
       <div style={{ width: "180px", background: "#f0f0f0", padding: "20px" }}>
 
-          <Card title={<Title level={4}>Settings</Title>} bordered>
+          <Card title={<Title level={4}>Settings 5{running === true ? <Button onClick={handleReset}>Reset</Button> : ""}
+          </Title>} bordered>
            <Space direction="vertical" style={{ width: "100%" }}>
               <Text strong>Balance: </Text>
               <Input type="number" value={startBalance} onChange={(e) => setStartBalance(Number(e.target.value))} />
@@ -173,8 +201,7 @@ const App = () => {
               >
                 {running === false ? "Start" : "Next"}
               </Button>
-              {running === true ? <Button onClick={handleReset}>Reset</Button> : ""}
-
+                
            </Space>
           </Card>
       </div>
@@ -230,10 +257,25 @@ const App = () => {
         }
 
         <div>
+          <RsiChart 
+            rsiMacdData={rsiMacdData} 
+            currentDate={currentDate}  
+          />
+        </div>
+
+        <div>
+          <MacdChart 
+            rsiMacdData={rsiMacdData} 
+            currentDate={currentDate}  
+          />
+        </div>
+
+        <div>
           <PointFigure 
             data={data} 
             currentIndex={currentIndex} 
             ticker={ticker}          
+            interval={interval}
           />
         </div>
 

@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 const { Option } = Select;
 const { Title, Text } = Typography;
 
-const PointFigure = ({ data, currentIndex, ticker }) => {
+const PointFigure = ({ data, currentIndex, ticker, interval }) => {
     const [loading, setLoading] = useState(false);
     const [pfData, setPfData] = useState(undefined);
     const [pfLink, setPfLink] = useState("");
@@ -14,8 +14,11 @@ const PointFigure = ({ data, currentIndex, ticker }) => {
 
     useEffect(() => {
         if (data.length < 1 ) return;
-        let d = data[currentIndex]['Date']; // Assuming this is a string
-        let endDate = dayjs(d).add(1, "day").format("YYYY-MM-DD");
+        let d = data[currentIndex]['Date']; // Assuming this is a stringendDate = 
+        let endDate = "";
+        if (interval === '1d') endDate = dayjs(d).add(1, "day").format("YYYY-MM-DD");
+        if (interval === '1wk') endDate = dayjs(d).add(1, "week").format("YYYY-MM-DD");
+        if (interval === '1mo') endDate = dayjs(d).add(1, "month").format("YYYY-MM-DD");
         let startDate = dayjs(endDate).subtract(1, "year").format("YYYY-MM-DD"); 
         const fetchPointFigure = async () => {
           setLoading(true);
