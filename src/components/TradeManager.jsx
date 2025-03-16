@@ -49,7 +49,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                             })
                         }
                         setShares([...shares, ...s]);
-                        setBalance(balance - tradeTotal);
+                        setBalance((prevBalance) => prevBalance - tradeTotal);
                         order.status = "filled"
                         order.completed = data[currentIndex]['Date']      
                         order.price = price;         
@@ -65,7 +65,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                 
                     setShares(shares.length === order.quantity ? [] : shares.slice(order.quantity));
 
-                    setBalance(balance + tradeTotal);
+                    setBalance((prevBalance) => prevBalance + tradeTotal);
                     order.status = "filled";
                     order.completed = data[currentIndex]['Date'];
                     order.price = price;
@@ -96,7 +96,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                                 })
                             }
                             setShares([...shares, ...s]);
-                            setBalance(balance - tradeTotal);
+                            setBalance((prevBalance) => prevBalance - tradeTotal);
                             order.status = "filled"
                             order.completed = data[currentIndex]['Date']                    
                             updateReport(order);
@@ -125,7 +125,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                                 })
                             }
                             setShares([...shares, ...s]);
-                            setBalance(balance - tradeTotal);
+                            setBalance((prevBalance) => prevBalance - tradeTotal);
                             order.status = "filled"
                             order.completed = data[currentIndex]['Date']                    
                             updateReport(order);
@@ -147,15 +147,14 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                         msg = "Trade completed";               
                         let tradeTotal = order.quantity * order.price;              
                         // setShares(shares.length === order.quantity ? [] : shares.slice(order.quantity));    
-                        setShares((shares) => {
-                            let remainingShares = [...shares];
+                        setShares((prevShares) => {
+                            let remainingShares = [...prevShares];
                             for (let i = 0; i < order.quantity; i++) {
-                                remainingShares.shift();  // Remove the first share each iteration
+                                remainingShares.shift();  // Ensure correct removal even when multiple orders are processed
                             }
                             return remainingShares;
-                        });
-                        
-                        setBalance(balance + tradeTotal);
+                        });                      
+                        setBalance((prevBalance) => prevBalance + tradeTotal);
                         order.status = "filled";
                         order.completed = data[currentIndex]['Date'];
                         updateReport(order);
