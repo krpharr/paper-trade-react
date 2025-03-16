@@ -101,6 +101,7 @@ const App = () => {
       } else {
         setData(response.data);
         setCurrentIndex(0);
+        console.log("Response Head:", response.data.slice(0, 5)); // Logs first 5 elements
       }
     } catch (error) {
       message.error("Failed to fetch data. Please check your inputs.");

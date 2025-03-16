@@ -3,10 +3,8 @@ import { Card, Button, Input, Select, Typography, DatePicker, Space, message } f
 import axios from "axios";
 import dayjs from "dayjs";
 
-
 const { Option } = Select;
 const { Title, Text } = Typography;
-
 
 const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShares, orders, setOrders, interval, report, setReport }) => {
   const [orderType, setOrderType] = useState("buy_market");
@@ -175,17 +173,16 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
 
                     if (high_price >= order.price) {
                         // limit has been hit
-                        msg = "Trade completed";               
-                        let tradeTotal = order.quantity * order.price;              
-                        // setShares(shares.length === order.quantity ? [] : shares.slice(order.quantity));    
-                        setShares((shares) => {
-                            let remainingShares = [...shares];
+                        msg = "Trade completed";         
+                        let tradeTotal = order.quantity * order.price;       
+                        setShares((prevShares) => {
+                            let remainingShares = [...prevShares];
                             for (let i = 0; i < order.quantity; i++) {
-                                remainingShares.shift();  // Remove the first share each iteration
+                                remainingShares.shift();  // Ensure correct removal even when multiple orders are processed
                             }
                             return remainingShares;
-                        });                        
-                        setBalance(balance + tradeTotal);
+                        });                      
+                        setBalance((prevBalance) => prevBalance + tradeTotal);
                         order.status = "filled";
                         order.completed = data[currentIndex]['Date'];
                         updateReport(order);
@@ -208,6 +205,14 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
       message.error("Price must be greater than zero for limit/stop orders.");
       return;
     }
+
+    if (orderType === "sell_market" || orderType === "sell_limit" || orderType === "sell_stop") {
+        let n = orderQuantity;
+        if (n > shares.length) {
+            message.error("Sell order has too many shares.");
+            return;
+        };
+    };
 
     if (orderType === "sell_market"){
         let n = orderQuantity;
@@ -250,29 +255,6 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
         <Input type="number" value={orderQuantity} onChange={(e) => setOrderQuantity(Number(e.target.value))} placeholder="Enter Quantity" />
         <Button type="primary" onClick={placeOrder} block>Place Order</Button>
       </Card>
-
-      {/* {orders.length > 0 ? 
-        <Card title="Open Orders" style={{ marginTop: 20 }}>
-        {orders.length > 0 ? (
-            orders.map((order, index) => (
-            <Card key={index} style={{ marginBottom: "10px" }}>
-                <Text strong>Created:</Text> {order.created} <br />
-                <Text strong>Type:</Text> {order.type} <br />
-                <Text strong>Price:</Text> ${order.price.toFixed(2)} <br />
-                <Text strong>Quantity:</Text> {order.quantity} <br />
-                <Text strong>Expiration:</Text> {order.expiration} <br />                
-                <Text strong>Status:</Text> {order.status} <br />
-                <Text strong>Completed:</Text> {order.completed} <br />
-            </Card>
-            ))
-        ) : (
-            <Text>No open orders</Text>
-        )}
-        </Card>
-
-        
-        : 
-        "No Orders"} */}
     </div>
   );
 };
