@@ -16,7 +16,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
 
     const updateReport = (order) => {
         let report_str = `${order.completed}, ${order.status}, ${order.type}, ${order.quantity}, ${order.price}\n`;
-        setReport(report + report_str);
+        setReport((prevReport) => prevReport + report_str);
     }
 
     if (data.length > 0) {
