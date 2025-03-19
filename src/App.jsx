@@ -31,14 +31,14 @@ const App = () => {
   const [startBalance, setStartBalance] = useState(() => getSavedState("startBalance", 1000));
   const [shares, setShares] = useState(() => getSavedState("shares", []));
   const [orders, setOrders] = useState(() => getSavedState("orders", []));
-  const [cost, setCost] = useState(0.0);
+  const [cost, setCost] = useState(() => getSavedState("cost", 0.0));
   const [data, setData] = useState(() => getSavedState("data", []));
   const [rsiMacdData, setRsiMacdData] = useState(() => getSavedState("rsiMacData", []));
   const [currentIndex, setCurrentIndex] = useState(() => getSavedState("currentIndex", -1));
   const [running, setRunning] = useState(false);
   const [report, setReport] = useState(() => getSavedState("report", ""));
-  const [chartVisable, setChartVisable] = useState(false);
-  const [percentDiff, setPercentDiff] = useState(0.0);
+  const [chartVisable, setChartVisable] = useState(() => getSavedState("chartVisable",false));
+  const [percentDiff, setPercentDiff] = useState(() => getSavedState("percentDiff", 0.0));
   const [fastForwarding, setFastForwarding] = useState(false);
   const [initialSharesCount, setInitialSharesCount] = useState(0); // Track starting shares
 
@@ -54,10 +54,13 @@ const App = () => {
   useEffect(() => localStorage.setItem("startBalance", JSON.stringify(startBalance)), [startBalance]);
   useEffect(() => localStorage.setItem("shares", JSON.stringify(shares)), [shares]);
   useEffect(() => localStorage.setItem("orders", JSON.stringify(orders)), [orders]);
+  useEffect(() => localStorage.setItem("cost", JSON.stringify(cost)), [cost]);
   useEffect(() => localStorage.setItem("data", JSON.stringify(data)), [data]);
   useEffect(() => localStorage.setItem("rsiMacdData", JSON.stringify(rsiMacdData)), [rsiMacdData]);
   useEffect(() => localStorage.setItem("currentIndex", JSON.stringify(currentIndex)), [currentIndex]);
   useEffect(() => localStorage.setItem("report", JSON.stringify(report)), [report]);
+  useEffect(() => localStorage.setItem("chartVisable", JSON.stringify(chartVisable)), [chartVisable]);
+  useEffect(() => localStorage.setItem("percentDiff", JSON.stringify(percentDiff)), [percentDiff]);
 
   useEffect(() => {
     let n = shares.reduce((acc, share) => acc + share.price, 0);
@@ -187,6 +190,7 @@ const App = () => {
     setRsiMacdData([]);
     setRunning(false);
     setReport("");
+    setChartVisable(false)
     setPercentDiff(0.0);
     setFastForwarding(false);
 
@@ -195,6 +199,7 @@ const App = () => {
     localStorage.removeItem("startBalance");
     localStorage.removeItem("shares");
     localStorage.removeItem("orders");
+    localStorage.removeItem("costs");
     localStorage.removeItem("data");
     localStorage.removeItem("rsiMacdData");
     localStorage.removeItem("report");
