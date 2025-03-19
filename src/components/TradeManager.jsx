@@ -80,7 +80,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                     const open_price = parseFloat(data[currentIndex]['Open']);
                     let tradeTotal = parseInt(order.quantity) * order.price;
 
-                    if (high_price >= order.price && order.price <= open_price){
+                    if (high_price >= order.price){
                         if (tradeTotal > balance) {
                             msg = "Trade could not be fulfiled";
                             order.status = "cancelled"
@@ -111,7 +111,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                     const open_price = parseFloat(data[currentIndex]['Open']);
                     let tradeTotal = parseInt(order.quantity) * order.price;
 
-                    if (low_price <= order.price && order.price <= high_price){
+                    if (low_price <= order.price){
                         if (tradeTotal > balance) {
                             msg = "Trade could not be fulfiled";
                             order.status = "cancelled";
@@ -147,7 +147,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                     const high_price = parseFloat(data[currentIndex]['High']);
                     const low_price = parseFloat(data[currentIndex]['Low']);
 
-                    if (low_price <= order.price && order.price <= high_price) {
+                    if (low_price <= order.price) {
                         // stop has been hit
                         msg = "Trade completed";               
                         let tradeTotal = order.quantity * order.price;              
@@ -176,7 +176,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                     const high_price = parseFloat(data[currentIndex]['High']);
                     const low_price = parseFloat(data[currentIndex]['Low']);
 
-                    if (high_price >= order.price && order.price >= low_price) {
+                    if (high_price >= order.price) {
                         // limit has been hit
                         msg = "Trade completed";         
                         let tradeTotal = order.quantity * order.price;       

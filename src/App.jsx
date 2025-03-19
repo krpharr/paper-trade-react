@@ -87,7 +87,6 @@ const App = () => {
       let str = `${ticker} %${percentDiff} ${startDate} ${endDate}\n`;
       setReport(report + str);
     }
-
   }, [balance, shares, currentIndex, orders]);
 
   useEffect(() => {
@@ -152,7 +151,6 @@ const App = () => {
         message.error("No data available for the selected period.");
       } else {
         setRsiMacdData(response.data);
-
       }
     } catch (error) {
       message.error("Failed to fetch data. Please check your inputs.");
@@ -293,9 +291,7 @@ const App = () => {
                       FF                
                     </Button>)}
                   </>
-                )}
-
-                
+                )}             
            </Space>
           </Card>
       </div>
@@ -322,7 +318,6 @@ const App = () => {
                 % {shares.length > 0 ? ((((parseFloat(data[currentIndex]['Close']) * shares.length) - cost) / cost) * 100).toFixed(2) : "N/A"} 
               </Text>
             </Card>
-
 
           <StockDataViewer 
             data={data} 
