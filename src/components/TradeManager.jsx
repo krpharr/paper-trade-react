@@ -73,12 +73,14 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                 }       
             }
             if (order.status === 'open' && order.created != data[currentIndex]['Date']) {
-                let msg = ""    
+                let msg = "";    
                 if (order.type === 'buy_stop'){
-                    const high_price = parseFloat(data[currentIndex]['High'])
-                    let tradeTotal = parseInt(order.quantity) * order.price
+                    const high_price = parseFloat(data[currentIndex]['High']);
+                    const low_price = parseFloat(data[currentIndex]['Low']);
+                    const open_price = parseFloat(data[currentIndex]['Open']);
+                    let tradeTotal = parseInt(order.quantity) * order.price;
 
-                    if (high_price >= order.price){
+                    if (high_price >= order.price && order.price <= open_price){
                         if (tradeTotal > balance) {
                             msg = "Trade could not be fulfiled";
                             order.status = "cancelled"
@@ -97,21 +99,23 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                             }
                             setShares([...shares, ...s]);
                             setBalance((prevBalance) => prevBalance - tradeTotal);
-                            order.status = "filled"
-                            order.completed = data[currentIndex]['Date']                    
+                            order.status = "filled";
+                            order.completed = data[currentIndex]['Date'];                    
                             updateReport(order);
                         }
                     }
                 }              
                 if (order.type === 'buy_limit'){
-                    const low_price = parseFloat(data[currentIndex]['Low'])
-                    let tradeTotal = parseInt(order.quantity) * order.price
+                    const low_price = parseFloat(data[currentIndex]['Low']);
+                    const high_price = parseFloat(data[currentIndex]['High']);
+                    const open_price = parseFloat(data[currentIndex]['Open']);
+                    let tradeTotal = parseInt(order.quantity) * order.price;
 
-                    if (low_price <= order.price){
+                    if (low_price <= order.price && order.price <= high_price){
                         if (tradeTotal > balance) {
                             msg = "Trade could not be fulfiled";
-                            order.status = "cancelled"
-                            order.completed = data[currentIndex]['Date']
+                            order.status = "cancelled";
+                            order.completed = data[currentIndex]['Date'];
                             updateReport(order);
                         }
                         if (tradeTotal <= balance){
@@ -126,8 +130,8 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                             }
                             setShares([...shares, ...s]);
                             setBalance((prevBalance) => prevBalance - tradeTotal);
-                            order.status = "filled"
-                            order.completed = data[currentIndex]['Date']                    
+                            order.status = "filled";
+                            order.completed = data[currentIndex]['Date'];                    
                             updateReport(order);
                         }
                     }
@@ -140,9 +144,10 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                         updateReport(order);
                         return;                     
                     }
+                    const high_price = parseFloat(data[currentIndex]['High']);
                     const low_price = parseFloat(data[currentIndex]['Low']);
 
-                    if (low_price <= order.price) {
+                    if (low_price <= order.price && order.price <= high_price) {
                         // stop has been hit
                         msg = "Trade completed";               
                         let tradeTotal = order.quantity * order.price;              
@@ -169,8 +174,9 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
                         return;                     
                     }
                     const high_price = parseFloat(data[currentIndex]['High']);
+                    const low_price = parseFloat(data[currentIndex]['Low']);
 
-                    if (high_price >= order.price) {
+                    if (high_price >= order.price && order.price >= low_price) {
                         // limit has been hit
                         msg = "Trade completed";         
                         let tradeTotal = order.quantity * order.price;       
@@ -198,6 +204,22 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
     if (orderQuantity <= 0) {
       message.error("Quantity must be greater than zero.");
       return;
+    }
+
+    if (orderType === "buy_stop" || orderType === "sell_limit"){
+        let p = parseFloat(data[currentIndex]['Close']);
+        if (orderPrice < p) {
+            message.error("Price must be higher than current price for buy-stop and sell-limit trades.");
+            return;
+        }
+    }
+
+    if (orderType === "sell_stop" || orderType === "buy_limit"){
+        let p = parseFloat(data[currentIndex]['Close']);
+        if (orderPrice > p) {
+            message.error("Price must be lower than current price for sell-stop and buy-limit trades.");
+            return;
+        }
     }
 
     if ((orderType !== "buy_market" && orderType !== "sell_market") && orderPrice <= 0) {

@@ -13,29 +13,60 @@ import "./styles.css"
 const { Option } = Select;
 const { Title, Text } = Typography;
 
-
 const App = () => {
-  const [ticker, setTicker] = useState("AAPL");
-  const [startDate, setStartDate] = useState(dayjs().subtract(1, "year").format("YYYY-MM-DD"));
-  const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
-  const [currentDate, setCurrentDate] = useState(startDate);
-  const [interval, setInterval] = useState("1d");
-  const [period, setPeriod] = useState("1mo");
-  const [numMonths, setNumMonths] = useState(1);
-  const [balance, setBalance] = useState(1000);
-  const [startBalance, setStartBalance] = useState(1000);
-  const [shares, setShares] = useState([]);
-  const [cost, setCost] = useState(0.0)
-  const [data, setData] = useState([]);
-  const [rsiMacdData, setRsiMacdData] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(-1);
+  
+  const getSavedState = (key, defaultValue) => {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : defaultValue;
+  };
+
+  const [ticker, setTicker] = useState(() => getSavedState("ticker", "AAPL"));
+  const [startDate, setStartDate] = useState(() => getSavedState("startDate", dayjs().subtract(1, "year").format("YYYY-MM-DD")));
+  const [endDate, setEndDate] = useState(() => getSavedState("endDate", dayjs().format("YYYY-MM-DD")));
+  const [currentDate, setCurrentDate] = useState(() => getSavedState("currentDate", startDate));
+  const [interval, setInterval] = useState(() => getSavedState("interval", "1d"));
+  const [period, setPeriod] = useState(() => getSavedState("period", "1mo"));
+  const [numMonths, setNumMonths] = useState(() => getSavedState("numMonths", 1));
+  const [balance, setBalance] = useState(() => getSavedState("balance", 1000));
+  const [startBalance, setStartBalance] = useState(() => getSavedState("startBalance", 1000));
+  const [shares, setShares] = useState(() => getSavedState("shares", []));
+  const [orders, setOrders] = useState(() => getSavedState("orders", []));
+  const [cost, setCost] = useState(0.0);
+  const [data, setData] = useState(() => getSavedState("data", []));
+  const [rsiMacdData, setRsiMacdData] = useState(() => getSavedState("rsiMacData", []));
+  const [currentIndex, setCurrentIndex] = useState(() => getSavedState("currentIndex", -1));
   const [running, setRunning] = useState(false);
-  const [orders, setOrders] = useState([]); // Move orders state here
-  const [report, setReport] = useState("");
+  const [report, setReport] = useState(() => getSavedState("report", ""));
   const [chartVisable, setChartVisable] = useState(false);
   const [percentDiff, setPercentDiff] = useState(0.0);
   const [fastForwarding, setFastForwarding] = useState(false);
   const [initialSharesCount, setInitialSharesCount] = useState(0); // Track starting shares
+
+  // Save updated state to localStorage whenever it changes
+  useEffect(() => localStorage.setItem("ticker", JSON.stringify(ticker)), [ticker]);
+  useEffect(() => localStorage.setItem("startDate", JSON.stringify(startDate)), [startDate]);
+  useEffect(() => localStorage.setItem("endDate", JSON.stringify(endDate)), [endDate]);
+  useEffect(() => localStorage.setItem("currentDate", JSON.stringify(currentDate)), [currentDate]);
+  useEffect(() => localStorage.setItem("interval", JSON.stringify(interval)), [interval]);
+  useEffect(() => localStorage.setItem("period", JSON.stringify(period)), [period]);
+  useEffect(() => localStorage.setItem("numMonths", JSON.stringify(numMonths)), [numMonths]);
+  useEffect(() => localStorage.setItem("balance", JSON.stringify(balance)), [balance]);
+  useEffect(() => localStorage.setItem("startBalance", JSON.stringify(startBalance)), [startBalance]);
+  useEffect(() => localStorage.setItem("shares", JSON.stringify(shares)), [shares]);
+  useEffect(() => localStorage.setItem("orders", JSON.stringify(orders)), [orders]);
+  useEffect(() => localStorage.setItem("data", JSON.stringify(data)), [data]);
+  useEffect(() => localStorage.setItem("rsiMacdData", JSON.stringify(rsiMacdData)), [rsiMacdData]);
+  useEffect(() => localStorage.setItem("currentIndex", JSON.stringify(currentIndex)), [currentIndex]);
+  useEffect(() => localStorage.setItem("report", JSON.stringify(report)), [report]);
+
+  useEffect(() => {
+    let n = shares.reduce((acc, share) => acc + share.price, 0);
+    setCost(n);
+
+    if (data.length > 0) {
+      setCurrentDate(dayjs(data[currentIndex]["Date"]).format("YYYY-MM-DD"));
+    }
+  }, [balance, shares, currentIndex, orders]);
 
   useEffect(() => {
     let n = 0.0;
@@ -142,14 +173,31 @@ const App = () => {
   };
 
   const handleReset = () => {
-    setCurrentIndex(data.length - 1);
+    setTicker("AAPL");
+    setStartDate(dayjs().subtract(1, "year").format("YYYY-MM-DD"));
+    setEndDate(dayjs().format("YYYY-MM-DD"));
+    setCurrentDate(startDate);
+    setCurrentIndex(-1);
     setBalance(1000);
     setStartBalance(1000);
     setShares([]);
     setOrders([]);
+    setCost(0.0);
+    setData([]);
+    setRsiMacdData([]);
     setRunning(false);
     setReport("");
+    setPercentDiff(0.0);
     setFastForwarding(false);
+
+    // Clear localStorage
+    localStorage.removeItem("balance");
+    localStorage.removeItem("startBalance");
+    localStorage.removeItem("shares");
+    localStorage.removeItem("orders");
+    localStorage.removeItem("data");
+    localStorage.removeItem("rsiMacdData");
+    localStorage.removeItem("report");
   };
 
   const handleCancelOrder = (orderId) => {
@@ -197,9 +245,9 @@ const App = () => {
       {/* Left Sidebar */}
       <div style={{ width: "180px", background: "#f0f0f0", padding: "20px" }}>
 
-          <Card title={<Title level={4}>Settings 5{running === true ? <Button onClick={handleReset}>Reset</Button> : ""}
-          </Title>} bordered>
+          <Card>
            <Space direction="vertical" style={{ width: "100%" }}>
+              {running === true ? <Button onClick={handleReset}>Reset</Button> : ""}
               <Text strong>Balance: </Text>
               <Input type="number" value={startBalance} onChange={(e) => setStartBalance(Number(e.target.value))} />
               {/* <Text strong>Shares: </Text>
