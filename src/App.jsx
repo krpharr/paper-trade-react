@@ -206,7 +206,7 @@ const App = () => {
   const handleCancelOrder = (orderId) => {
     const updatedOrders = orders.filter(order => order.id !== orderId);
     setOrders(updatedOrders);
-    message.success("Order canceled successfully!");
+    message.success("Order cancelled successfully!");
   };
 
   const handleChartToggle = (checked) => {

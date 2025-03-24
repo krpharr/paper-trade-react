@@ -1,249 +1,50 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, Input, Select, Typography, DatePicker, Space, message } from "antd";
-import axios from "axios";
-import dayjs from "dayjs";
+import { Card, Button, Input, Select, Typography, message } from "antd";
+import { updateReport, processOrders } from "./tradeManagerUtility";
 
 const { Option } = Select;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
-const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShares, orders, setOrders, interval, report, setReport }) => {
+const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShares, orders, setOrders, setReport }) => {
   const [orderType, setOrderType] = useState("buy_market");
   const [orderPrice, setOrderPrice] = useState(0);
   const [orderQuantity, setOrderQuantity] = useState(0);
   const [orderExpiration, setOrderExpiration] = useState("gfd");
- 
+
   useEffect(() => {
-
-    const updateReport = (order) => {
-        let report_str = `${order.completed}, ${order.status}, ${order.type}, ${order.quantity}, ${order.price}\n`;
-        setReport((prevReport) => prevReport + report_str);
-    }
-
-    if (data.length > 0) {
-        for (const order of orders) {
-            console.log("Order Quantity:", order.quantity);
-            console.log("Shares Before Update:", shares.length);
-            if (order.status === 'open' && order.created === data[currentIndex]['Date']) {
-                let msg = ""  
-                console.log("open and created same day");
-                if (order.type === 'buy_market'){
-                    console.log("buy_market");
-                    const price = parseFloat(data[currentIndex]['Close'])
-                    let tradeTotal = parseInt(order.quantity) * price
-                    if (tradeTotal > balance) {
-                        msg = "Trade could not be fulfiled";
-                        console.log(msg);
-                        order.status = "cancelled";
-                        order.completed = data[currentIndex]['Date'];
-                        order.price = price;
-                        updateReport(order);
-                    }
-                    if (tradeTotal <= balance){
-                        msg = "Buy Market Trade completed";
-                        let s = [];
-                        for (let i = 0; i < order.quantity; i++) {
-                            s.push({
-                                orderId: order.id,
-                                date: data[currentIndex]['Date'],
-                                price: price
-                            })
-                        }
-                        setShares([...shares, ...s]);
-                        setBalance((prevBalance) => prevBalance - tradeTotal);
-                        order.status = "filled"
-                        order.completed = data[currentIndex]['Date']      
-                        order.price = price;         
-                        updateReport(order);
-                        console.log(msg);         
-                    }
-                }                
-                if (order.type === 'sell_market'){
-                    const price = parseFloat(data[currentIndex]['Close']);
-                    msg = "Trade completed";
-                
-                    let tradeTotal = order.quantity * price;
-                
-                    setShares(shares.length === order.quantity ? [] : shares.slice(order.quantity));
-
-                    setBalance((prevBalance) => prevBalance + tradeTotal);
-                    order.status = "filled";
-                    order.completed = data[currentIndex]['Date'];
-                    order.price = price;
-                    updateReport(order);
-                }       
-            }
-            if (order.status === 'open' && order.created != data[currentIndex]['Date']) {
-                let msg = "";    
-                if (order.type === 'buy_stop'){
-                    const high_price = parseFloat(data[currentIndex]['High']);
-                    const low_price = parseFloat(data[currentIndex]['Low']);
-                    const open_price = parseFloat(data[currentIndex]['Open']);
-                    let tradeTotal = parseInt(order.quantity) * order.price;
-
-                    if (high_price >= order.price){
-                        if (tradeTotal > balance) {
-                            msg = "Trade could not be fulfiled";
-                            order.status = "cancelled"
-                            order.completed = data[currentIndex]['Date']
-                            updateReport(order);
-                        }
-                        if (tradeTotal <= balance){
-                            msg = "Trade completed";
-                            let s = [];
-                            for (let i = 0; i < order.quantity; i++) {
-                                s.push({
-                                    orderId: order.id,
-                                    date: data[currentIndex]['Date'],
-                                    price: order.price
-                                })
-                            }
-                            setShares([...shares, ...s]);
-                            setBalance((prevBalance) => prevBalance - tradeTotal);
-                            order.status = "filled";
-                            order.completed = data[currentIndex]['Date'];                    
-                            updateReport(order);
-                        }
-                    }
-                }              
-                if (order.type === 'buy_limit'){
-                    const low_price = parseFloat(data[currentIndex]['Low']);
-                    const high_price = parseFloat(data[currentIndex]['High']);
-                    const open_price = parseFloat(data[currentIndex]['Open']);
-                    let tradeTotal = parseInt(order.quantity) * order.price;
-
-                    if (low_price <= order.price){
-                        if (tradeTotal > balance) {
-                            msg = "Trade could not be fulfiled";
-                            order.status = "cancelled";
-                            order.completed = data[currentIndex]['Date'];
-                            updateReport(order);
-                        }
-                        if (tradeTotal <= balance){
-                            msg = "Trade completed";
-                            let s = [];
-                            for (let i = 0; i < order.quantity; i++) {
-                                s.push({
-                                    orderId: order.id,
-                                    date: data[currentIndex]['Date'],
-                                    price: order.price
-                                })
-                            }
-                            setShares([...shares, ...s]);
-                            setBalance((prevBalance) => prevBalance - tradeTotal);
-                            order.status = "filled";
-                            order.completed = data[currentIndex]['Date'];                    
-                            updateReport(order);
-                        }
-                    }
-                }                 
-                if (order.type === 'sell_stop'){
-                    if (shares.length < order.quantity) {
-                        message.error("Not enough shares to sell stop order. Todo: only create new orders sell orders that match shares. also need to be able to update an order to accoodate.")
-                        order.status = "cancelled";
-                        order.completed = data[currentIndex]['Date'];       
-                        updateReport(order);
-                        return;                     
-                    }
-                    const high_price = parseFloat(data[currentIndex]['High']);
-                    const low_price = parseFloat(data[currentIndex]['Low']);
-
-                    if (low_price <= order.price) {
-                        // stop has been hit
-                        msg = "Trade completed";               
-                        let tradeTotal = order.quantity * order.price;              
-                        // setShares(shares.length === order.quantity ? [] : shares.slice(order.quantity));    
-                        setShares((prevShares) => {
-                            let remainingShares = [...prevShares];
-                            for (let i = 0; i < order.quantity; i++) {
-                                remainingShares.shift();  // Ensure correct removal even when multiple orders are processed
-                            }
-                            return remainingShares;
-                        });                      
-                        setBalance((prevBalance) => prevBalance + tradeTotal);
-                        order.status = "filled";
-                        order.completed = data[currentIndex]['Date'];
-                        updateReport(order);
-                    }
-                }                
-                if (order.type === 'sell_limit'){
-                    if (shares.length < order.quantity) {
-                        message.error("Not enough shares to sell limit order. Todo: only create new orders sell orders that match shares. also need to be able to update an order to accoodate.")
-                        order.status = "cancelled";
-                        order.completed = data[currentIndex]['Date'];       
-                        updateReport(order);
-                        return;                     
-                    }
-                    const high_price = parseFloat(data[currentIndex]['High']);
-                    const low_price = parseFloat(data[currentIndex]['Low']);
-
-                    if (high_price >= order.price) {
-                        // limit has been hit
-                        msg = "Trade completed";         
-                        let tradeTotal = order.quantity * order.price;       
-                        setShares((prevShares) => {
-                            let remainingShares = [...prevShares];
-                            for (let i = 0; i < order.quantity; i++) {
-                                remainingShares.shift();  // Ensure correct removal even when multiple orders are processed
-                            }
-                            return remainingShares;
-                        });                      
-                        setBalance((prevBalance) => prevBalance + tradeTotal);
-                        order.status = "filled";
-                        order.completed = data[currentIndex]['Date'];
-                        updateReport(order);
-                    }
-                }
-            }
-        }
-        console.log("Shares After Update:", shares.length);
-        console.log(shares);          
-    }
+    processOrders(orders, data, currentIndex, balance, setBalance, shares, setShares, setReport);
   }, [currentIndex, orders]);
- 
+
   const placeOrder = () => {
     if (orderQuantity <= 0) {
       message.error("Quantity must be greater than zero.");
       return;
     }
 
-    if (orderType === "buy_stop" || orderType === "sell_limit"){
-        let p = parseFloat(data[currentIndex]['Close']);
-        if (orderPrice < p) {
-            message.error("Price must be higher than current price for buy-stop and sell-limit trades.");
-            return;
-        }
+    if (["buy_stop", "sell_limit"].includes(orderType) && orderPrice < parseFloat(data[currentIndex]['Close'])) {
+        message.error("Price must be higher than current price.");
+        return;
     }
 
-    if (orderType === "sell_stop" || orderType === "buy_limit"){
-        let p = parseFloat(data[currentIndex]['Close']);
-        if (orderPrice > p) {
-            message.error("Price must be lower than current price for sell-stop and buy-limit trades.");
-            return;
-        }
+    if (["sell_stop", "buy_limit"].includes(orderType) && orderPrice > parseFloat(data[currentIndex]['Close'])) {
+        message.error("Price must be lower than current price.");
+        return;
     }
 
-    if ((orderType !== "buy_market" && orderType !== "sell_market") && orderPrice <= 0) {
+    if (!["buy_market", "sell_market"].includes(orderType) && orderPrice <= 0) {
       message.error("Price must be greater than zero for limit/stop orders.");
       return;
     }
 
-    if (orderType === "sell_market" || orderType === "sell_limit" || orderType === "sell_stop") {
-        let n = orderQuantity;
-        if (n > shares.length) {
-            message.error("Sell order has too many shares.");
+    if (["sell_market", "sell_limit", "sell_stop"].includes(orderType) && orderQuantity > shares.length) {
+        message.error("Not enough shares to sell.");
+        return;
+    }
+
+    if (orderType === "sell_market") {
+        if (shares.slice(0, orderQuantity).some(share => share.date === data[currentIndex]['Date'])) {
+            message.error("Cannot sell shares bought on the same day.");
             return;
-        };
-    };
-
-    if (orderType === "sell_market"){
-        let n = orderQuantity;
-        let d = data[currentIndex]['Date']
-
-        for(let i = 0; i < n; i++){
-            if(shares[i].date === d){
-                message.error("Can not sell shares bought in the same day.");
-                return;
-            }
         }
     }
 
@@ -262,7 +63,7 @@ const TradeManager = ({ data, currentIndex, balance, setBalance, shares, setShar
 
   return (
     <div style={{ maxWidth: 600, margin: "auto" }}>
-      <Card >
+      <Card>
         <Title level={5}>Place Order</Title>
         <Select value={orderType} onChange={setOrderType} style={{ width: "100%" }}>
           <Option value="buy_market">Buy Market</Option>
