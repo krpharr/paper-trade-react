@@ -36,7 +36,7 @@ const PointFigure = ({ data, currentIndex, ticker, interval }) => {
         };
         let pfd = dayjs(d).format("YYYYMMDD");
         // let pfUrl = `https://stockcharts.com/freecharts/pnf.php?c=${ticker},PWTADANRRO[PA][D${pfd}][F1!3!!!2!20][J,Y]`;
-        let pfUrl = `https://stockcharts.com/freecharts/pnf.php?c=${ticker},PWPADANRRR[PA][D${pfd}][F1!3!3!!2!20][J,Y]`;
+        let pfUrl = `https://stockcharts.com/freecharts/pnf.php?c=${ticker},PWPADANRRR[PA][D${pfd}][F1!3!1.0!!2!20][J,Y]`;
         setPfLink(pfUrl);
         if (viewPF) fetchPointFigure();
         let str = `O:${data[currentIndex]['Open']} C:${data[currentIndex]['Close']} H:${data[currentIndex]['High']} L:${data[currentIndex]['Low']}`
